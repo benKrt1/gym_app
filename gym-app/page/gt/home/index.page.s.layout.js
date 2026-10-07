@@ -6,16 +6,15 @@ export const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = getDeviceInfo();
 // Τετράγωνη οθόνη: ίδια διάταξη με το round layout.
 // Δεν υπάρχει κίνδυνος να κοπούν γωνίες, οπότε τα ίδια νούμερα δουλεύουν.
 
-export const CURRENT_EXERCISE_STYLE = {
+export const TIMER_STYLE = {
   x: 43,
   y: 100,
   w: 380,
   h: 100,
   color: 0xffffff,
-  text_size: 32,
+  text_size: 72,
   align_h: hmUI.align.CENTER_H,
   align_v: hmUI.align.CENTER_V,
-  text_style: hmUI.text_style.WRAP,
 };
 
 export const BACK_BUTTON_STYLE = {
