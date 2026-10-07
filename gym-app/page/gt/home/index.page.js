@@ -21,11 +21,18 @@ const EXERCISES = [
 ];
 
 const EXERCISE_DURATION_SEC = 60; // 45 sec άσκηση + 15 sec διάλειμμα
+const TIMER_TICK_MS = 30;
+
+function formatTime(totalSec) {
+  const whole = Math.floor(totalSec);
+  const centis = Math.floor((totalSec - whole) * 100);
+  return `${whole}.${String(centis).padStart(2, "0")}`;
+}
 
 Page({
   state: {
     currentIndex: 0,
-    elapsedSec: 0,
+    startTime: 0,
     timerId: null,
     timerWidget: null,
     nextTextWidget: null,
@@ -38,7 +45,7 @@ Page({
 
     this.state.timerWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       ...TIMER_STYLE,
-      text: "0",
+      text: "0.00",
     });
 
     hmUI.createWidget(hmUI.widget.BUTTON, {
@@ -65,18 +72,21 @@ Page({
     return `Next: ${EXERCISES[nextIndex]}`;
   },
   startTimer() {
-    this.state.elapsedSec = 0;
-    this.state.timerWidget.text = String(this.state.elapsedSec);
+    this.state.startTime = Date.now();
+    this.state.timerWidget.text = formatTime(0);
 
     this.state.timerId = setInterval(() => {
-      this.state.elapsedSec += 1;
-      this.state.timerWidget.text = String(this.state.elapsedSec);
+      const elapsedSec = (Date.now() - this.state.startTime) / 1000;
 
-      if (this.state.elapsedSec >= EXERCISE_DURATION_SEC) {
+      if (elapsedSec >= EXERCISE_DURATION_SEC) {
+        this.state.timerWidget.text = formatTime(EXERCISE_DURATION_SEC);
         clearInterval(this.state.timerId);
         this.state.timerId = null;
+        return;
       }
-    }, 1000);
+
+      this.state.timerWidget.text = formatTime(elapsedSec);
+    }, TIMER_TICK_MS);
   },
   stopTimer() {
     if (this.state.timerId !== null) {
