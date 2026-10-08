@@ -40,14 +40,22 @@ const TIMER_TICK_MS = 30;
 const BLINK_START_SEC = 55; // τελευταία 5 sec: αναβοσβήνει το χρονόμετρο
 const BLINK_INTERVAL_MS = 250;
 
-// Background animation: μόνο για "High Knee Taps" προς το παρόν
-// (placeholder frames, θα προστεθούν κι άλλες ασκήσεις αργότερα).
-const ANIMATION_EXERCISE = "High Knee Taps";
-const ANIMATION_FRAMES = [
-  "image/highknees_0.png",
-  "image/highknees_1.png",
-  "image/highknees_2.png",
-];
+// Background animation: ανά άσκηση λίστα από frames. Ασκήσεις που δεν
+// έχουν ακόμα έτοιμα frames λείπουν από το map και απλά δεν παίζουν animation.
+const EXERCISE_ANIMATIONS = {
+  "High Knee Taps": [
+    "image/highknees_0.png",
+    "image/highknees_1.png",
+    "image/highknees_2.png",
+  ],
+  "Russian Twists": [
+    "image/russiantwists_0.png",
+    "image/russiantwists_1.png",
+    "image/russiantwists_2.png",
+    "image/russiantwists_3.png",
+    "image/russiantwists_4.png",
+  ],
+};
 const ANIMATION_FRAME_INTERVAL_MS = 500;
 // "Κενό" frame (μαύρο, ίδιο με το φόντο) όταν δεν τρέχει animation.
 // Χρησιμοποιούμε εναλλαγή src αντί για VISIBLE/alpha, που αποδείχτηκαν
@@ -163,14 +171,14 @@ Page({
     }
   },
   updateAnimationForExercise() {
-    const isAnimatedExercise = EXERCISES[this.state.currentIndex] === ANIMATION_EXERCISE;
+    const frames = EXERCISE_ANIMATIONS[EXERCISES[this.state.currentIndex]];
 
     this.stopAnimation();
 
-    if (isAnimatedExercise) {
+    if (frames) {
       this.state.timerBaseColor = TIMER_COLOR_ON_ANIMATION;
       this.state.nextTextWidget.color = NEXT_EXERCISE_COLOR_ON_ANIMATION;
-      this.startAnimation();
+      this.startAnimation(frames);
     } else {
       this.state.timerBaseColor = TIMER_COLOR_DEFAULT;
       this.state.nextTextWidget.color = NEXT_EXERCISE_COLOR_DEFAULT;
@@ -181,16 +189,16 @@ Page({
 
     this.state.timerWidget.color = this.state.timerBaseColor;
   },
-  startAnimation() {
+  startAnimation(frames) {
     this.state.animationFrameIndex = 0;
     this.state.animationWidget.setProperty(hmUI.prop.MORE, {
-      src: ANIMATION_FRAMES[0],
+      src: frames[0],
     });
     this.state.animationTimerId = setInterval(() => {
       this.state.animationFrameIndex =
-        (this.state.animationFrameIndex + 1) % ANIMATION_FRAMES.length;
+        (this.state.animationFrameIndex + 1) % frames.length;
       this.state.animationWidget.setProperty(hmUI.prop.MORE, {
-        src: ANIMATION_FRAMES[this.state.animationFrameIndex],
+        src: frames[this.state.animationFrameIndex],
       });
     }, ANIMATION_FRAME_INTERVAL_MS);
   },
