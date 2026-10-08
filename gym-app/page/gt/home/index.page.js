@@ -1,9 +1,15 @@
 import * as hmUI from "@zos/ui";
 import { log as Logger } from "@zos/utils";
 import {
+  Vibrator,
+  VIBRATOR_SCENE_SHORT_STRONG,
+  VIBRATOR_SCENE_DURATION,
+} from "@zos/sensor";
+import {
   TIMER_STYLE,
   TIMER_COLOR_DEFAULT,
   TIMER_COLOR_ON_ANIMATION,
+  TIMER_COLOR_REST,
   ANIMATION_STYLE,
   NEXT_EXERCISE_STYLE,
   BACK_BUTTON_STYLE,
@@ -15,17 +21,22 @@ const logger = Logger.getLogger("gym-app");
 // Προσωρινή, σταθερή λίστα ασκήσεων. Θα αντικατασταθεί αργότερα
 // (βήμα 5) από λίστα που επεξεργάζεσαι μέσω iPhone.
 const EXERCISES = [
-  "Squats",
-  "Push-ups",
-  "Lunges",
-  "Plank",
-  "Burpees",
-  "Jumping Jacks",
   "High Knee Taps",
+  "Russian Twists",
+  "Leg Raises",
+  "Hip Raises",
+  "Flutter Kicks",
+  "Plank Knee To Elbow",
+  "Chair Sit Ups",
+  "Seated In & Out",
+  "Jumping Jacks",
 ];
 
 const EXERCISE_DURATION_SEC = 60; // 45 sec άσκηση + 15 sec διάλειμμα
+const EXERCISE_PHASE_SEC = 45; // μετά από αυτό ξεκινά το διάλειμμα
 const TIMER_TICK_MS = 30;
+const BLINK_START_SEC = 55; // τελευταία 5 sec: αναβοσβήνει το χρονόμετρο
+const BLINK_INTERVAL_MS = 250;
 
 // Background animation: μόνο για "High Knee Taps" προς το παρόν
 // (placeholder frames, θα προστεθούν κι άλλες ασκήσεις αργότερα).
@@ -53,12 +64,18 @@ Page({
     animationWidget: null,
     animationTimerId: null,
     animationFrameIndex: 0,
+    timerBaseColor: TIMER_COLOR_DEFAULT,
+    vibrator: null,
+    vibratedPhaseChange: false,
+    vibratedEnd: false,
   },
   onInit() {
     logger.debug("page onInit invoked");
   },
   build() {
     logger.debug("page build invoked");
+
+    this.state.vibrator = new Vibrator();
 
     // Δημιουργείται πρώτο ώστε να μένει ΠΙΣΩ από το χρονόμετρο (z-order = σειρά δημιουργίας).
     this.state.animationWidget = hmUI.createWidget(hmUI.widget.IMG, {
@@ -99,18 +116,39 @@ Page({
   startTimer() {
     this.state.startTime = Date.now();
     this.state.timerWidget.text = formatTime(0);
+    this.state.vibratedPhaseChange = false;
+    this.state.vibratedEnd = false;
 
     this.state.timerId = setInterval(() => {
       const elapsedSec = (Date.now() - this.state.startTime) / 1000;
 
       if (elapsedSec >= EXERCISE_DURATION_SEC) {
         this.state.timerWidget.text = formatTime(EXERCISE_DURATION_SEC);
+        if (!this.state.vibratedEnd) {
+          this.state.vibratedEnd = true;
+          this.state.vibrator.start({ mode: VIBRATOR_SCENE_DURATION });
+        }
         clearInterval(this.state.timerId);
         this.state.timerId = null;
         return;
       }
 
       this.state.timerWidget.text = formatTime(elapsedSec);
+
+      const inRestPhase = elapsedSec >= EXERCISE_PHASE_SEC;
+      this.state.timerWidget.color = inRestPhase
+        ? TIMER_COLOR_REST
+        : this.state.timerBaseColor;
+
+      if (inRestPhase && !this.state.vibratedPhaseChange) {
+        this.state.vibratedPhaseChange = true;
+        this.state.vibrator.start({ mode: VIBRATOR_SCENE_SHORT_STRONG });
+      }
+
+      if (elapsedSec >= BLINK_START_SEC) {
+        const blinkOn = Math.floor(Date.now() / BLINK_INTERVAL_MS) % 2 === 0;
+        this.state.timerWidget.text = blinkOn ? formatTime(elapsedSec) : "";
+      }
     }, TIMER_TICK_MS);
   },
   stopTimer() {
@@ -125,13 +163,15 @@ Page({
     this.stopAnimation();
 
     if (isAnimatedExercise) {
-      this.state.timerWidget.color = TIMER_COLOR_ON_ANIMATION;
+      this.state.timerBaseColor = TIMER_COLOR_ON_ANIMATION;
       this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, true);
       this.startAnimation();
     } else {
-      this.state.timerWidget.color = TIMER_COLOR_DEFAULT;
+      this.state.timerBaseColor = TIMER_COLOR_DEFAULT;
       this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, false);
     }
+
+    this.state.timerWidget.color = this.state.timerBaseColor;
   },
   startAnimation() {
     this.state.animationFrameIndex = 0;

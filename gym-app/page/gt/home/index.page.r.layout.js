@@ -21,6 +21,8 @@ export const TIMER_STYLE = {
 // Χρώμα χρονομέτρου όταν δείχνει πάνω από το animation (λευκό φόντο εικόνων).
 export const TIMER_COLOR_ON_ANIMATION = 0x000000;
 export const TIMER_COLOR_DEFAULT = 0xffffff;
+// Χρώμα χρονομέτρου στο διάλειμμα (45-60 sec), υπερισχύει των παραπάνω.
+export const TIMER_COLOR_REST = 0xffa500;
 
 // Background animation (εναλλαγή στατικών εικόνων), fullscreen πίσω
 // από το χρονόμετρο. Τα ίδια τα PNG frames είναι ήδη 466x466
