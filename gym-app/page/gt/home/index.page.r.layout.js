@@ -67,3 +67,7 @@ export const NEXT_EXERCISE_STYLE = {
   align_v: hmUI.align.CENTER_V,
   text_style: hmUI.text_style.WRAP,
 };
+
+// Χρώμα ετικέτας "Next: ..." πάνω από το animation (λευκό φόντο εικόνων).
+export const NEXT_EXERCISE_COLOR_ON_ANIMATION = 0x333333;
+export const NEXT_EXERCISE_COLOR_DEFAULT = 0xaaaaaa;

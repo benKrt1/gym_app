@@ -12,6 +12,8 @@ import {
   TIMER_COLOR_REST,
   ANIMATION_STYLE,
   NEXT_EXERCISE_STYLE,
+  NEXT_EXERCISE_COLOR_ON_ANIMATION,
+  NEXT_EXERCISE_COLOR_DEFAULT,
   BACK_BUTTON_STYLE,
   FORWARD_BUTTON_STYLE,
 } from "zosLoader:./index.page.[pf].layout.js";
@@ -47,6 +49,10 @@ const ANIMATION_FRAMES = [
   "image/highknees_2.png",
 ];
 const ANIMATION_FRAME_INTERVAL_MS = 500;
+// "Κενό" frame (μαύρο, ίδιο με το φόντο) όταν δεν τρέχει animation.
+// Χρησιμοποιούμε εναλλαγή src αντί για VISIBLE/alpha, που αποδείχτηκαν
+// αναξιόπιστα μέσω setProperty σε αυτό το SDK.
+const BLANK_FRAME = "image/blank.png";
 
 function formatTime(totalSec) {
   const whole = Math.floor(totalSec);
@@ -80,9 +86,8 @@ Page({
     // Δημιουργείται πρώτο ώστε να μένει ΠΙΣΩ από το χρονόμετρο (z-order = σειρά δημιουργίας).
     this.state.animationWidget = hmUI.createWidget(hmUI.widget.IMG, {
       ...ANIMATION_STYLE,
-      src: ANIMATION_FRAMES[0],
+      src: BLANK_FRAME,
     });
-    this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, false);
 
     this.state.timerWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       ...TIMER_STYLE,
@@ -164,17 +169,23 @@ Page({
 
     if (isAnimatedExercise) {
       this.state.timerBaseColor = TIMER_COLOR_ON_ANIMATION;
-      this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, true);
+      this.state.nextTextWidget.color = NEXT_EXERCISE_COLOR_ON_ANIMATION;
       this.startAnimation();
     } else {
       this.state.timerBaseColor = TIMER_COLOR_DEFAULT;
-      this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, false);
+      this.state.nextTextWidget.color = NEXT_EXERCISE_COLOR_DEFAULT;
+      this.state.animationWidget.setProperty(hmUI.prop.MORE, {
+        src: BLANK_FRAME,
+      });
     }
 
     this.state.timerWidget.color = this.state.timerBaseColor;
   },
   startAnimation() {
     this.state.animationFrameIndex = 0;
+    this.state.animationWidget.setProperty(hmUI.prop.MORE, {
+      src: ANIMATION_FRAMES[0],
+    });
     this.state.animationTimerId = setInterval(() => {
       this.state.animationFrameIndex =
         (this.state.animationFrameIndex + 1) % ANIMATION_FRAMES.length;
