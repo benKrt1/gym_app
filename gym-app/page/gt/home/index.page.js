@@ -2,6 +2,9 @@ import * as hmUI from "@zos/ui";
 import { log as Logger } from "@zos/utils";
 import {
   TIMER_STYLE,
+  TIMER_COLOR_DEFAULT,
+  TIMER_COLOR_ON_ANIMATION,
+  ANIMATION_STYLE,
   NEXT_EXERCISE_STYLE,
   BACK_BUTTON_STYLE,
   FORWARD_BUTTON_STYLE,
@@ -18,10 +21,21 @@ const EXERCISES = [
   "Plank",
   "Burpees",
   "Jumping Jacks",
+  "High Knee Taps",
 ];
 
 const EXERCISE_DURATION_SEC = 60; // 45 sec άσκηση + 15 sec διάλειμμα
 const TIMER_TICK_MS = 30;
+
+// Background animation: μόνο για "High Knee Taps" προς το παρόν
+// (placeholder frames, θα προστεθούν κι άλλες ασκήσεις αργότερα).
+const ANIMATION_EXERCISE = "High Knee Taps";
+const ANIMATION_FRAMES = [
+  "image/highknees_0.png",
+  "image/highknees_1.png",
+  "image/highknees_2.png",
+];
+const ANIMATION_FRAME_INTERVAL_MS = 500;
 
 function formatTime(totalSec) {
   const whole = Math.floor(totalSec);
@@ -36,12 +50,22 @@ Page({
     timerId: null,
     timerWidget: null,
     nextTextWidget: null,
+    animationWidget: null,
+    animationTimerId: null,
+    animationFrameIndex: 0,
   },
   onInit() {
     logger.debug("page onInit invoked");
   },
   build() {
     logger.debug("page build invoked");
+
+    // Δημιουργείται πρώτο ώστε να μένει ΠΙΣΩ από το χρονόμετρο (z-order = σειρά δημιουργίας).
+    this.state.animationWidget = hmUI.createWidget(hmUI.widget.IMG, {
+      ...ANIMATION_STYLE,
+      src: ANIMATION_FRAMES[0],
+    });
+    this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, false);
 
     this.state.timerWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       ...TIMER_STYLE,
@@ -65,6 +89,7 @@ Page({
       text: this.getNextExerciseLabel(),
     });
 
+    this.updateAnimationForExercise();
     this.startTimer();
   },
   getNextExerciseLabel() {
@@ -94,17 +119,49 @@ Page({
       this.state.timerId = null;
     }
   },
+  updateAnimationForExercise() {
+    const isAnimatedExercise = EXERCISES[this.state.currentIndex] === ANIMATION_EXERCISE;
+
+    this.stopAnimation();
+
+    if (isAnimatedExercise) {
+      this.state.timerWidget.color = TIMER_COLOR_ON_ANIMATION;
+      this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, true);
+      this.startAnimation();
+    } else {
+      this.state.timerWidget.color = TIMER_COLOR_DEFAULT;
+      this.state.animationWidget.setProperty(hmUI.prop.VISIBLE, false);
+    }
+  },
+  startAnimation() {
+    this.state.animationFrameIndex = 0;
+    this.state.animationTimerId = setInterval(() => {
+      this.state.animationFrameIndex =
+        (this.state.animationFrameIndex + 1) % ANIMATION_FRAMES.length;
+      this.state.animationWidget.setProperty(hmUI.prop.MORE, {
+        src: ANIMATION_FRAMES[this.state.animationFrameIndex],
+      });
+    }, ANIMATION_FRAME_INTERVAL_MS);
+  },
+  stopAnimation() {
+    if (this.state.animationTimerId !== null) {
+      clearInterval(this.state.animationTimerId);
+      this.state.animationTimerId = null;
+    }
+  },
   changeExercise(direction) {
     const total = EXERCISES.length;
     this.state.currentIndex =
       (this.state.currentIndex + direction + total) % total;
     this.state.nextTextWidget.text = this.getNextExerciseLabel();
 
+    this.updateAnimationForExercise();
     this.stopTimer();
     this.startTimer();
   },
   onDestroy() {
     logger.debug("page onDestroy invoked");
     this.stopTimer();
+    this.stopAnimation();
   },
 });

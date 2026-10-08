@@ -18,6 +18,20 @@ export const TIMER_STYLE = {
   align_v: hmUI.align.CENTER_V,
 };
 
+// Χρώμα χρονομέτρου όταν δείχνει πάνω από το animation (λευκό φόντο εικόνων).
+export const TIMER_COLOR_ON_ANIMATION = 0x000000;
+export const TIMER_COLOR_DEFAULT = 0xffffff;
+
+// Background animation (εναλλαγή στατικών εικόνων), fullscreen πίσω
+// από το χρονόμετρο. Τα ίδια τα PNG frames είναι ήδη 466x466
+// (κεντραρισμένα με λευκό padding), άρα δεν χρειάζεται scaling εδώ.
+export const ANIMATION_STYLE = {
+  x: 0,
+  y: 0,
+  w: DEVICE_WIDTH,
+  h: DEVICE_HEIGHT,
+};
+
 export const BACK_BUTTON_STYLE = {
   x: 28,
   y: 250,
