@@ -55,6 +55,13 @@ const EXERCISE_ANIMATIONS = {
     "image/russiantwists_3.png",
     "image/russiantwists_4.png",
   ],
+  "Flutter Kicks": [
+    "image/flutterkicks_0.png",
+    "image/flutterkicks_1.png",
+    "image/flutterkicks_2.png",
+    "image/flutterkicks_3.png",
+    "image/flutterkicks_4.png",
+  ],
 };
 const ANIMATION_FRAME_INTERVAL_MS = 500;
 // "Κενό" frame (μαύρο, ίδιο με το φόντο) όταν δεν τρέχει animation.
